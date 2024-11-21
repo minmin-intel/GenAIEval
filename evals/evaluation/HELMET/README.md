@@ -23,6 +23,20 @@ Please install the necessary packages with
 ```bash
 pip install -r requirements.txt
 ```
+```bash
+export WORKDIR=<your-work-directory>
+export HF_TOKEN=<your-hf-token> # for downloading gated models from HF hub
+export HF_CACHE_DIR=<your-directory-to-store-models>
+cd $WORKDIR
+git clone https://github.com/opea-project/GenAIEval.git
+cd GenAIEval/evals/evaluation/HELMET/docker/
+bash build_image.sh
+# after the docker image is built
+bash launch_helmet_eval_container.sh
+```
+You will be taken into the docker container. You can run the steps below inside the container.
+
+
 
 Additionally, if you wish to use the API models, you will need to install the package corresponding to the API you wish to use
 ```bash

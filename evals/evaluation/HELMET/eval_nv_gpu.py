@@ -101,8 +101,8 @@ def run_test(args, model, dataset, test_file, demo_file):
             output = None
 
     end_time = time.time()
-#    mem_usage = sum([torch.cuda.max_memory_allocated(i) for i in range(torch.cuda.device_count())])
-#    logger.info(f"Memory usage: {mem_usage/1000**3:.02f} GB")
+    mem_usage = sum([torch.cuda.max_memory_allocated(i) for i in range(torch.cuda.device_count())])
+    logger.info(f"Memory usage: {mem_usage/1000**3:.02f} GB")
     logger.info(f"Throughput: {len(results) / (end_time - start_time):.02f} samples/s")
 
     if args.count_tokens:

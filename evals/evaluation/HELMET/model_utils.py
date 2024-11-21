@@ -542,10 +542,11 @@ class HFModel(LLM):
         model_kwargs = {}
         from pkg_resources import parse_version
 
-        if parse_version(transformers.__version__) <= parse_version("4.34.1"):
-            model_kwargs["use_flash_attention_2"] = True
-        else:
-            model_kwargs["attn_implementation"] = kwargs.get("attn_implementation", "flash_attention_2")
+#        if parse_version(transformers.__version__) <= parse_version("4.34.1"):
+#            model_kwargs["use_flash_attention_2"] = True
+#        else:
+#            model_kwargs["attn_implementation"] = kwargs.get("attn_implementation", "flash_attention_2")
+        model_kwargs["use_flash_attention_2"] = False # for test on cpu
         if "recurrentgemma" in model_name or "yarn" in model_name.lower():
             model_kwargs = {}
 

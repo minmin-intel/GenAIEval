@@ -1,6 +1,6 @@
 accelerate
 datasets
-flash-attn
+#flash-attn
 ninja
 packaging
 pytrec_eval
