@@ -129,8 +129,10 @@ class OpenAIModel(LLM):
             include_system=False,
         )
         inputs = "\n".join([f"Role: {x['role']}\nContent: {x['content']}" for x in prompt])
+        print("** Inputs:\n", inputs)
         tokens = self.tokenizer.encode(inputs)
         input_len = len(tokens)
+        print("** Input # tokens:", input_len)
 
         max_length = self.max_length
         if max_length > 128000:
@@ -178,6 +180,56 @@ class OpenAIModel(LLM):
                 "input_text": inputs,
             }
         return None
+
+
+class TgiVllmModel(OpenAIModel):
+    def __init__(
+            self, 
+            model_name, 
+            temperature=0.9, 
+            top_p=0.9, 
+            max_length=32768, 
+            generation_max_length=2048, 
+            generation_min_length=0, 
+            do_sample=True, 
+            stop_newline=False, 
+            use_chat_template=True, 
+            **kwargs
+            ):
+        
+        self.model_name = model_name
+        self.temperature = temperature
+        self.top_p = top_p
+        self.max_length = max_length
+        self.generation_max_length = generation_max_length
+        self.generation_min_length = generation_min_length
+        self.do_sample = do_sample
+        self.use_chat_template = use_chat_template
+        self.stops = None
+        if stop_newline:
+            self.stops = ["\n", "\n\n"]
+        
+        from openai import OpenAI
+        from transformers import AutoTokenizer
+        
+        gen_params = {
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_tokens": generation_max_length,
+            "do_sample": do_sample,
+            "streaming": False
+        }
+
+        endpoint_url = kwargs["endpoint_url"]
+        print(f"** Endpoint URL: {endpoint_url}")
+
+        self.model = OpenAI(
+                base_url=endpoint_url,
+                api_key="EMPTY_KEY",
+                **gen_params
+            )
+        self.model_name = model_name
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 
 class AnthropicModel(LLM):
@@ -764,6 +816,8 @@ def load_LLM(args):
         model_cls = TogetherModel
     elif args.use_vllm:
         model_cls = VLLMModel
+    elif args.use_tgi_or_vllm_serving:
+        model_cls = TgiVllmModel
     else:
         model_cls = HFModel
 
@@ -774,6 +828,8 @@ def load_LLM(args):
         kwargs["torch_dtype"] = torch.float32
     if args.rope_theta is not None:
         kwargs["rope_theta"] = args.rope_theta
+    if args.use_tgi_or_vllm_serving:
+        kwargs["endpoint_url"] = args.endpoint_url
 
     model = model_cls(
         args.model_name_or_path,
