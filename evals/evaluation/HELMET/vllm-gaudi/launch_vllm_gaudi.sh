@@ -13,13 +13,13 @@ sleep 5s
 echo "Waiting vllm gaudi ready"
 n=0
 until [[ "$n" -ge 100 ]] || [[ $ready == true ]]; do
-    docker logs test-comps-vllm-gaudi-service &> ${LOG_PATH}/vllm-gaudi-service.log
+    docker logs vllm-gaudi-server &> ${LOG_PATH}/vllm-gaudi-service.log
     n=$((n+1))
     if grep -q "Uvicorn running on" ${LOG_PATH}/vllm-gaudi-service.log; then
         break
     fi
     if grep -q "No such container" ${LOG_PATH}/vllm-gaudi-service.log; then
-        echo "container test-comps-vllm-gaudi-service not found"
+        echo "container vllm-gaudi-server not found"
         exit 1
     fi
     sleep 5s
