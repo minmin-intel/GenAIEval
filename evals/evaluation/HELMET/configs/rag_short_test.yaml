@@ -13,4 +13,7 @@ stop_new_line: true
 model_name_or_path: meta-llama/Llama-3.1-70B-Instruct #meta-llama/Llama-3.2-1B-Instruct
 output_dir: output/test_Llama-3.1-70B-Instruct
 use_tgi_or_vllm_serving: true
-endpoint_url: http://${host_ip}:${port}/v1/
+top_p: 0.95
+temperature: 0
+do_sample: false
+endpoint_host_ip: http://${host_ip}:${port}/v1/

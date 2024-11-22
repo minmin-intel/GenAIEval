@@ -212,13 +212,13 @@ class TgiVllmModel(OpenAIModel):
         from openai import OpenAI
         from transformers import AutoTokenizer
         
-        gen_params = {
-            "temperature": temperature,
-            "top_p": top_p,
-            "max_tokens": generation_max_length,
-            "do_sample": do_sample,
-            "streaming": False
-        }
+        # gen_params = {
+        #     "temperature": temperature,
+        #     "top_p": top_p,
+        #     "max_tokens": generation_max_length,
+        #     "do_sample": do_sample,
+        #     "streaming": False
+        # }
 
         endpoint_url = kwargs["endpoint_url"]
         print(f"** Endpoint URL: {endpoint_url}")
@@ -226,7 +226,6 @@ class TgiVllmModel(OpenAIModel):
         self.model = OpenAI(
                 base_url=endpoint_url,
                 api_key="EMPTY_KEY",
-                **gen_params
             )
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)

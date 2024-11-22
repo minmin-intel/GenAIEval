@@ -61,6 +61,7 @@ def run_test(args, model, dataset, test_file, demo_file):
                 continue
 
             output = model.generate(inputs=inputs)
+            print("** Output:\n", output)
             if output is None:
                 logger.info(f"skipping example {idx+1} because the model returned None")
                 continue
@@ -126,7 +127,7 @@ def run_test(args, model, dataset, test_file, demo_file):
         "data": results,
         "metrics": metrics,
         "averaged_metrics": averaged_metrics,
-        "memory_usage": mem_usage,
+        #"memory_usage": mem_usage,
         "throughput": len(results) / (end_time - start_time),
     }
 
