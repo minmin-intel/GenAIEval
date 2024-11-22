@@ -6,7 +6,7 @@ datasets: kilt_nq,kilt_nq
 generation_max_length: 20,20
 test_files: data/kilt/nq-dev-multikilt_1000_k50_dep6.jsonl,data/kilt/nq-dev-multikilt_1000_k105_dep6.jsonl
 demo_files: data/kilt/nq-train-multikilt_1000_k3_dep6.jsonl,data/kilt/nq-train-multikilt_1000_k3_dep6.jsonl
-use_chat_template: false
+use_chat_template: false #use tgi server will always apply chat template with chat completion api
 max_test_samples: 100
 shots: 2
 stop_new_line: true
