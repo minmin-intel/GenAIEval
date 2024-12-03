@@ -18,7 +18,7 @@ until [[ "$n" -ge 100 ]] || [[ $ready == true ]]; do
         break
     fi
     if grep -q "No such container" ${LOG_PATH}/vllm-gaudi-service.log; then
-        echo "container test-comps-vllm-gaudi-service not found"
+        echo "container vllm-gaudi-server not found"
         exit 1
     fi
     sleep 5s
