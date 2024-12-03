@@ -887,7 +887,7 @@ def load_data(args, dataset, path=None, demo_path=None):
 
     if "post_process" not in data:
         data["post_process"] = default_post_process
-
+    print("** Loaded data: ", data)
     return data
 
 
@@ -902,6 +902,7 @@ class TestItemDataset(Dataset):
 
     def __getitem__(self, idx):
         inputs = self.llm.prepare_inputs(self.data["data"][idx], self.data)
+        # print("** Input after prep: ", inputs)
         original_text = None
         if "input_ids" in inputs:
             original_text = self.tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=False)

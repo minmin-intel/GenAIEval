@@ -129,10 +129,10 @@ class OpenAIModel(LLM):
             include_system=False,
         )
         inputs = "\n".join([f"Role: {x['role']}\nContent: {x['content']}" for x in prompt])
-        print("** Inputs:\n", inputs)
+        # print("** Inputs:\n", inputs)
         tokens = self.tokenizer.encode(inputs)
         input_len = len(tokens)
-        print("** Input # tokens:", input_len)
+        # print("** Input # tokens:", input_len)
 
         max_length = self.max_length
         if max_length > 128000:
@@ -140,10 +140,29 @@ class OpenAIModel(LLM):
             max_length = 128000
 
         if input_len > max_length - self.generation_max_length - buffer:
+            print("** Truncate...input_len: ", input_len, " max_length: ", max_length)
             truncate_length = input_len - (max_length - self.generation_max_length - buffer)
-            new_context = self.tokenizer.decode(self.tokenizer.encode(test_item["context"])[:-truncate_length])
+            context_tokens = self.tokenizer.encode(test_item["context"])
+            print("** Context tokens:", len(context_tokens))
+            truncated_context_tokens = context_tokens[:-truncate_length]
+            print("** Truncated context tokens:", len(truncated_context_tokens))
+            new_context = self.tokenizer.decode(truncated_context_tokens)
+            print("** New context:", new_context)
+            new_context_tokens = self.tokenizer.encode(new_context)
+            print("** New context tokens:", new_context_tokens)
+            print("** New context length:", len(new_context_tokens))
             test_item["context"] = new_context
             prompt = format_chat(data["user_template"].format(**test_item), include_system=False)
+        
+        content_tokens = self.tokenizer.encode(prompt[0]["content"])
+        print("** Input Content tokens after prep:", len(content_tokens))
+
+        context_tokens = self.tokenizer.encode(test_item["context"])
+        print("** Context tokens after prep:", len(context_tokens))
+
+        demo_tokens = self.tokenizer.encode(test_item["demos"])
+        print("** Demo tokens after prep:", len(demo_tokens))
+
         return prompt
 
     """

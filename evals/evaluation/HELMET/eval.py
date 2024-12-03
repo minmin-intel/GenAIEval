@@ -61,7 +61,7 @@ def run_test(args, model, dataset, test_file, demo_file):
                 continue
 
             output = model.generate(inputs=inputs)
-            print("** Output:\n", output)
+            # print("** Output:\n", output)
             if output is None:
                 logger.info(f"skipping example {idx+1} because the model returned None")
                 continue
@@ -90,7 +90,7 @@ def run_test(args, model, dataset, test_file, demo_file):
             # print out some examples, we also limit how much we print out since it can get really long
             if idx < 5 or args.debug:
                 logger.info(f"Example {idx+1}: ")
-                logger.info(f"Decoder inputs:\n{input_text}\n")
+                # logger.info(f"Decoder inputs:\n{input_text}\n")
 
                 logger.info(f"Input length: {output['input_len']}")
                 # currently we hardcode somethings to print out, but you may change these to print out other things
