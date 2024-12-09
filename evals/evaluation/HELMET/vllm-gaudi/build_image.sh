@@ -5,7 +5,7 @@
 echo "Building the vllm-gaudi docker images"
 cd $WORKDIR
 echo $WORKDIR
-if [ ! -d "./vllm" ]; then
+if [ ! -d "./vllm-fork" ]; then
     git clone https://github.com/HabanaAI/vllm-fork.git
 fi
 cd ./vllm-fork
