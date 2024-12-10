@@ -1,4 +1,4 @@
-model="meta-llama/Meta-Llama-3.1-8B-Instruct"
+model="meta-llama/Llama-3.2-1B-Instruct"
 MAX_INPUT=65536
 vllm_port=8000
 vllm_volume=$HF_CACHE_DIR
@@ -7,7 +7,7 @@ LOG_PATH=$WORKDIR
 
 echo "start vllm cpu service"
 echo "**************model is $model**************"
-docker run -d --rm --name "vllm-cpu-server" -p $vllm_port:8000 -v $vllm_volume:/data -e VLLM_CPU_KVCACHE_SPACE=80 -e HF_TOKEN=$HF_TOKEN -e HUGGING_FACE_HUB_TOKEN=$HF_TOKEN -e HF_HOME=/data -e http_proxy=$http_proxy -e https_proxy=$https_proxy -e no_proxy=$no_proxy --ipc=host vllm-cpu-env --model ${model} #--max-seq-len-to-capture $MAX_INPUT
+docker run -d --rm --name "vllm-cpu-server" -p $vllm_port:8000 -v $vllm_volume:/data -e VLLM_CPU_KVCACHE_SPACE=80 -e HF_TOKEN=$HF_TOKEN -e HUGGING_FACE_HUB_TOKEN=$HF_TOKEN -e HF_HOME=/data -e http_proxy=$http_proxy -e https_proxy=$https_proxy -e no_proxy=$no_proxy --ipc=host vllm-cpu-env --model ${model} #--max-model-len 2000000 #--max-seq-len-to-capture $MAX_INPUT
 sleep 5s
 echo "Waiting vllm cpu ready"
 n=0

@@ -10,10 +10,9 @@ use_chat_template: true
 max_test_samples: 100
 shots: 2
 stop_new_line: true
-model_name_or_path: meta-llama/Meta-Llama-3.1-70B-Instruct
-output_dir: output/test_Llama-3.1-70B-Instruct_vllm
+model_name_or_path: meta-llama/Llama-3.2-1B-Instruct
+output_dir: output/test_Llama-3.2-1B-Instruct_vllm_gaudi
 use_tgi_or_vllm_serving: true
 top_p: 0.95
 temperature: 0
 do_sample: false
-endpoint_host_ip: http://${host_ip}:${port}/v1/

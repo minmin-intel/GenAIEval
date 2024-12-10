@@ -19,10 +19,6 @@ Please check out the paper for more details, and this repo will detail how to ru
 
 ## Setup
 
-Please install the necessary packages with
-```bash
-pip install -r requirements.txt
-```
 ```bash
 export WORKDIR=<your-work-directory>
 export HF_TOKEN=<your-hf-token> # for downloading gated models from HF hub
