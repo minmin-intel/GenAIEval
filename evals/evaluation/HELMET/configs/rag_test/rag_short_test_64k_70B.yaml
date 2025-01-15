@@ -1,0 +1,18 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+input_max_length: 65536
+datasets: kilt_nq
+generation_max_length: 20
+test_files: data/kilt/nq-dev-multikilt_1000_k440_dep6.jsonl #data/kilt/nq-dev-multikilt_1000_k50_dep6.jsonl, 
+demo_files: data/kilt/nq-train-multikilt_1000_k3_dep6.jsonl
+use_chat_template: true
+max_test_samples: 100
+shots: 2
+stop_new_line: true
+model_name_or_path: meta-llama/Meta-Llama-3.1-70B-Instruct
+output_dir: output/test_Llama-3.1-70B-Instruct_vllm_v1p19
+use_tgi_or_vllm_serving: true
+top_p: 0.95
+temperature: 0
+do_sample: false
