@@ -11,11 +11,13 @@ import argparse
 """
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--llm_endpoint_url", type=str, default="https://localhost:8086")
+    parser.add_argument("--llm_endpoint_url", type=str, default="http://localhost:8086")
     parser.add_argument("--model", type=str, default="meta-llama/Llama-3.3-70B-Instruct")
     parser.add_argument("--ip_address", type=str, default="localhost")
     parser.add_argument("--chunk_size", type=int, default=1500)
     parser.add_argument("--chunk_overlap", type=int, default=100)
+    parser.add_argument("--retrieval_endpoint_url", type=str, default="http://localhost:8889/v1/retrievaltool")
+    parser.add_argument("--output", type=str, default="output.jsonl")
     args = parser.parse_args()
     return args
 
