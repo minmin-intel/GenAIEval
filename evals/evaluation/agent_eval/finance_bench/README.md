@@ -6,8 +6,17 @@
 git clone https://github.com/patronus-ai/financebench.git
 ```
 
-2. Process data
+2. Get OPEA GenAIComps repo
+```bash
+git clone
+```
 
-3. Get OPEA GenAIComps repo
+3. Create a conda environment
 
-4. 
+
+## Run benchmarks
+### Scenario 1: Shared vector store
+
+### Scenario 2: Single vector store
+
+### Scenario 3: Long context

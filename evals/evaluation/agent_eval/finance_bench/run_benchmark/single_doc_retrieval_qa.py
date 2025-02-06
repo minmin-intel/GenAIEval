@@ -1,4 +1,4 @@
-from utils import generate_answer, get_test_data, get_args, get_doc_path
+from utils import generate_answer, get_test_data, get_args, run_agent
 from prompt import RAG_PROMPT_TEMPLATE
 import requests
 import time
@@ -66,23 +66,29 @@ if __name__ == "__main__":
         context = search_knowledge_base(url, query)
         print("Retrieved context:\n", context)
         print("-"*50)
-        print("Oracle evidence:\n", row["evidence"])
+        # print("Oracle evidence:\n", row["evidence"])
         print("-"*50)
 
-
+        # Conventional RAG
         # prompt = RAG_PROMPT_TEMPLATE.format(document=context, question=query)
-        # resp = generate_answer(args.prompt)
+        # resp = generate_answer(args, prompt)
         # print("RAG Answer:\n", resp)
         # print("-"*50)
-        # print("Gold Answer:\n", row["answer"])
-        # print("="*100)
+
+        # RAG agent
+        resp = run_agent(args, query)
+        print("Agent Answer:\n", resp)
+        print("-"*50)
+
+        print("Gold Answer:\n", row["answer"])
+        print("="*100)
         
         output = {
             "doc_name": doc_name,
             "question": query,
             "context": context,
-            # "response": resp,
-            # "gold_answer": row["answer"],
+            "response": resp,
+            "gold_answer": row["answer"],
             "oracle_evidence": row["evidence"],
         }
 
