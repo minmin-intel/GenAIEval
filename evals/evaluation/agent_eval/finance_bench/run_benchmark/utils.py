@@ -20,6 +20,8 @@ def get_args():
     parser.add_argument("--chunk_overlap", type=int, default=100)
     parser.add_argument("--retrieval_endpoint_url", type=str, default="http://localhost:8889/v1/retrievaltool")
     parser.add_argument("--output", type=str, default="output.jsonl")
+    parser.add_argument("--ingest_option", type=str, default="docling")
+    parser.add_argument("--retriever_option", type=str, default="plain")
     args = parser.parse_args()
     return args
 
