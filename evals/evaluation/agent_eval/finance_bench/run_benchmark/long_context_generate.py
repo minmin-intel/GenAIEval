@@ -1,103 +1,117 @@
-import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import fitz
-import pytesseract
-import cv2
-import numpy as np
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-import pandas as pd
+from ingest_data import process_pdf_docling
+from transformers import AutoTokenizer
 import os
-from openai import OpenAI
-import argparse
-from .prompt import LONG_CONTEXT_PROMPT_TEMPLATE
-from .utils import generate_answer, get_test_data, get_args
+import json
+import time
+from docling.document_converter import DocumentConverter
+
+from prompt import LONG_CONTEXT_PROMPT_TEMPLATE
+from utils import generate_answer, get_test_data, get_args, get_doc_path
 
 
-def process_page(doc, idx):
-    page = doc.load_page(idx)
-    pagetext = page.get_text().strip()
-    result = pagetext if pagetext.endswith(("!", "?", ".")) else pagetext + "."
+MAX_CONTEXT_LEN = 131072
+BUFFER = 100
 
-    page_images = doc.get_page_images(idx)
-    if page_images:
-        for img_index, img in enumerate(page_images):
-            xref = img[0]
-            img_data = doc.extract_image(xref)
-            img_bytes = img_data["image"]
-
-            # process images
-            img_array = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)
-            img_result = pytesseract.image_to_string(img_array, lang="eng", config="--psm 6")
-
-            # add results
-            pageimg = img_result.strip()
-            pageimg += "" if pageimg.endswith(("!", "?", ".")) else "."
-            result += pageimg
-    return result
-
-
-def load_pdf(pdf_path):
-    doc = fitz.open(pdf_path)
-    results = []
-
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = [executor.submit(process_page, doc, i) for i in range(doc.page_count)]
-        for future in as_completed(futures):
-            results.append(future.result())
-
-    combined_result = "".join(results)
-    return combined_result
-
-def get_separators():
-    separators = [
-        "\n\n",
-        "\n",
-        " ",
-        ".",
-        ",",
-        "\u200b",  # Zero-width space
-        "\uff0c",  # Fullwidth comma
-        "\u3001",  # Ideographic comma
-        "\uff0e",  # Fullwidth full stop
-        "\u3002",  # Ideographic full stop
-        "",
-    ]
-    return separators
-
-def split_text(content, text_splitter):
-    chunks = text_splitter.split_text(content)
-    return chunks
-
-
-def parse_pdf_document(doc_name, chunk_size=1000, chunk_overlap=100):
-    """
-    Use OPEA dataprep microservice to parse the PDF document
-    """
-    # load pdf
-    pdf_content = load_pdf(doc_name)
-
-    # text_splitter = RecursiveCharacterTextSplitter(
-    #         chunk_size=chunk_size,
-    #         chunk_overlap=chunk_overlap,
-    #         add_start_index=True,
-    #         separators=get_separators(),
-    #     )
+def truncate_context(full_doc, question, tokenizer, max_output_tokens):
+    prompt = LONG_CONTEXT_PROMPT_TEMPLATE.format(document=full_doc, question=question)
+    prompt_len = len(tokenizer.encode(prompt))
+    print(f"Prompt length in tokens: {prompt_len}")
     
-    # chunks = split_text(pdf_content, text_splitter)
+    max_input_tokens = MAX_CONTEXT_LEN - BUFFER - max_output_tokens
+    if prompt_len > max_input_tokens:
+        overflow = prompt_len - max_input_tokens
+        print(f"Overflow: {overflow}")
+        full_doc_tokens = tokenizer.encode(full_doc)
+        truncated_doc_tokens = full_doc_tokens[:-overflow]
+        truncated_doc = tokenizer.decode(truncated_doc_tokens)
+        print(f"Truncated doc from {len(full_doc_tokens)} to {len(truncated_doc_tokens)}")
+        print(truncated_doc[:50])
+        # prompt = LONG_CONTEXT_PROMPT_TEMPLATE.format(document=truncated_doc, question=question)
+        # prompt_len = len(tokenizer.encode(prompt))
+        # print(f"New prompt length in tokens: {prompt_len}")
+        return truncated_doc
+    else:
+        return full_doc
 
-    return pdf_content
 
-
+WORKDIR=os.getenv('WORKDIR')
+DATAPATH=os.path.join(WORKDIR, 'datasets/financebench/dataprep/')
 
 if __name__ == "__main__":
     args = get_args()
 
     df = get_test_data()
-    doc_name = df.iloc[0]["doc_name"]
-    print(doc_name)
-    parsed_content = parse_pdf_document(doc_name)
-    print(parsed_content)
-    # generate_answer()
+    df = df.loc[df["doc_name"]!="3M_2018_10K"]
+
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
+
+    if args.debug:
+        filename = os.path.join(DATAPATH, '3M_2018_10K.md')
+        with open(filename, "r") as f:
+            full_doc = f.read()
+    else:
+        doc_converter = DocumentConverter()
+
+    previous_doc_name = ""
+
+    responses = []
+    truncated_flags = []
+    generation_time = []
+    for i, row in df.iterrows():
+        query = row["question"]
+        doc_name = row["doc_name"]
+
+        print(f"Question: {query}\nDocument: {doc_name}")
+
+        if doc_name != previous_doc_name:
+            print(f" @@@ Question is about New document: {doc_name}")
+
+            if not args.debug:
+                doc_path = get_doc_path(doc_name)
+                print("Parsing PDF....")
+                full_doc, _ = process_pdf_docling(doc_converter, doc_path)
+                doc_save_path = os.path.join(DATAPATH, f"{doc_name}.md")
+                with open(doc_save_path, "w") as f:
+                    f.write(full_doc)
+
+            previous_doc_name = doc_name
+            truncated_doc = truncate_context(full_doc, query, tokenizer, args.max_new_tokens)
+        else:
+            print(f" @@@ Question is about the same document: {doc_name}")
+
+
+        if len(truncated_doc) < len(full_doc):
+            truncated_flags.append("true")
+        else:
+            truncated_flags.append("false")
+
+        prompt = LONG_CONTEXT_PROMPT_TEMPLATE.format(document=truncated_doc, question=query)
+
+        t0 = time.time()
+        resp = generate_answer(args, prompt)
+        t1 = time.time()
+        print(f"Response: {resp}")
+
+        responses.append(resp)
+        generation_time.append(t1-t0)
+
+        output = {
+            "doc_name": doc_name,
+            "question": query,
+            "gold_answer": row["answer"],
+            "response": resp,
+            "truncated": truncated_flags[-1],
+            "generation_time": generation_time[-1]
+        }
+
+        with open(args.output, "a") as f:
+            f.write(json.dumps(output)+"\n")
+
+        print("="*50)
+
+    df["response"] = responses
+    df["truncated"] = truncated_flags
+    df["generation_time"] = generation_time
+    df.to_csv(args.output.replace(".json", ".csv"), index=False)
 
     

@@ -1,12 +1,12 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-model="deepseek-ai/DeepSeek-R1-Distill-Llama-70B" #"meta-llama/Llama-3.3-70B-Instruct" #"meta-llama/Meta-Llama-3.1-70B-Instruct"
+model="meta-llama/Llama-3.3-70B-Instruct" #"meta-llama/Meta-Llama-3.1-70B-Instruct" #"deepseek-ai/DeepSeek-R1-Distill-Llama-70B" #
 vllm_port=8085
 vllm_volume=${HF_CACHE_DIR}
 LOG_PATH=${WORKDIR}
 vllm_image="opea/vllm-gaudi:comps"
-max_length=131072
+max_length=131072 #16384
 
 echo "start vllm gaudi service"
 echo "**************model is $model**************"
