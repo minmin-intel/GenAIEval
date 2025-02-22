@@ -202,11 +202,11 @@ def evaluate_predictions(queries, ground_truths_list, predictions, args):
     for _idx, prediction in enumerate(tqdm(
         predictions, total=len(predictions), desc="Evaluating Predictions"
     )):
-        query = queries[_idx]
-        ground_truth = ground_truths_list[_idx].strip()
+        query = str(queries[_idx])
+        ground_truth = str(ground_truths_list[_idx]) #.strip()
         # trim prediction to 75 tokens using Llama2 tokenizer
         # prediction = trim_predictions_to_max_token_length(prediction)
-        prediction = prediction.strip()
+        prediction = str(prediction) #.strip()
 
         ground_truth_lowercase = ground_truth.lower()
         prediction_lowercase = prediction.lower()
@@ -251,7 +251,7 @@ def evaluate_predictions(queries, ground_truths_list, predictions, args):
             print(f"LLM judge Response: {response}")
             eval_response.append(response)
             if response:
-                log_response(messages, response)
+                # log_response(messages, response)
                 _, accuracy = parse_response(response)
                 print(f"Parsed Accuracy: {accuracy}")
                 # if accuracy == 1:
@@ -262,6 +262,8 @@ def evaluate_predictions(queries, ground_truths_list, predictions, args):
 
         if accuracy == 1:
             n_correct += 1
+        elif accuracy == 0:
+            n_miss += 1
 
     n = len(predictions)
     results = {
@@ -287,7 +289,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--llm_endpoint_url", type=str, default="http://localhost:8085")
     parser.add_argument("--model", type=str, default="meta-llama/Llama-3.3-70B-Instruct")
-    parser.add_argument("--filename", type=str, default="finqa_agent_v4_all_t0p5.csv", help="Path to the dataset file.")
+    parser.add_argument("--filename", type=str, default="react_agent_baseline_all_t0p5.csv", help="Path to the dataset file.")
 
     args = parser.parse_args()
 
