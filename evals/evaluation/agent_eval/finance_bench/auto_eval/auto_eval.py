@@ -287,9 +287,9 @@ if __name__ == "__main__":
     import pandas as pd
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--llm_endpoint_url", type=str, default="http://localhost:8085")
+    parser.add_argument("--llm_endpoint_url", type=str, default="http://localhost:8086")
     parser.add_argument("--model", type=str, default="meta-llama/Llama-3.3-70B-Instruct")
-    parser.add_argument("--filename", type=str, default="react_agent_baseline_all_t0p5.csv", help="Path to the dataset file.")
+    parser.add_argument("--filename", type=str, default="long_context_all_minus_first_two.csv", help="Path to the dataset file.")
 
     args = parser.parse_args()
 
@@ -302,8 +302,14 @@ if __name__ == "__main__":
     # df = df.head(2)
 
     queries = df["question"].tolist()
-    ground_truths = df["answer"].tolist()
-    predictions = df["agent_response"].tolist()
+    try:
+        ground_truths = df["answer"].tolist()
+    except:
+        ground_truths = df["gold_answer"].tolist()
+    try:
+        predictions = df["agent_response"].tolist()
+    except:
+        predictions = df["response"].tolist()
     
     # Evaluate Predictions
     evaluation_results, eval_response, score_list = evaluate_predictions(
