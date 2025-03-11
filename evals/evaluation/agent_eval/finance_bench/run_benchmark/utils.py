@@ -25,6 +25,7 @@ def get_args():
     parser.add_argument("--ingest_option", type=str, default="docling")
     parser.add_argument("--retriever_option", type=str, default="plain")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--read_processed", action="store_true")
     args = parser.parse_args()
     return args
 

@@ -1,4 +1,4 @@
-output="${WORKDIR}/datasets/financebench/results/long_context_all_minus_first_two.json"
+output="${WORKDIR}/datasets/financebench/results/long_context_arceep1.json"
 
 python long_context_generate.py \
 --output $output

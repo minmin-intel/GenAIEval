@@ -35,7 +35,7 @@ def truncate_context(full_doc, question, tokenizer, max_output_tokens):
 
 
 WORKDIR=os.getenv('WORKDIR')
-DATAPATH=os.path.join(WORKDIR, 'datasets/financebench/dataprep/')
+DATAPATH=os.path.join(WORKDIR, 'datasets/financebench_data/dataprep/')
 
 if __name__ == "__main__":
     args = get_args()
@@ -45,11 +45,14 @@ if __name__ == "__main__":
 
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
-    if args.debug:
-        filename = os.path.join(DATAPATH, '3M_2018_10K.md')
-        with open(filename, "r") as f:
-            full_doc = f.read()
-    else:
+    # if args.debug:
+    #     filename = os.path.join(DATAPATH, '3M_2018_10K.md')
+    #     with open(filename, "r") as f:
+    #         full_doc = f.read()
+    # elif args.read_processed:
+    #     pass
+    # else:
+    if not args.read_processed:
         doc_converter = DocumentConverter()
 
     previous_doc_name = ""
@@ -66,13 +69,17 @@ if __name__ == "__main__":
         if doc_name != previous_doc_name:
             print(f" @@@ Question is about New document: {doc_name}")
 
-            if not args.debug:
+            if not args.read_processed:
                 doc_path = get_doc_path(doc_name)
                 print("Parsing PDF....")
                 full_doc, _ = process_pdf_docling(doc_converter, doc_path)
                 doc_save_path = os.path.join(DATAPATH, f"{doc_name}.md")
                 with open(doc_save_path, "w") as f:
                     f.write(full_doc)
+            else:
+                doc_save_path = os.path.join(DATAPATH, f"{doc_name}.md")
+                with open(doc_save_path, "r") as f:
+                    full_doc = f.read()
 
             previous_doc_name = doc_name
             truncated_doc = truncate_context(full_doc, query, tokenizer, args.max_new_tokens)
