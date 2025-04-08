@@ -13,6 +13,7 @@ import requests
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--llm_endpoint_url", type=str, default="http://localhost:8085")
+    parser.add_argument("--api_key", type=str, default="")
     parser.add_argument("--agent_url", type=str, default="http://localhost:9095/v1/chat/completions")
     parser.add_argument("--model", type=str, default="meta-llama/Llama-3.3-70B-Instruct")
     parser.add_argument("--max_new_tokens", type=int, default=2048)
@@ -48,7 +49,7 @@ def generate_answer(args, prompt):
     # send request to vllm endpoint
     client = OpenAI(
         base_url=f"{args.llm_endpoint_url}/v1",
-        api_key="token-abc123",
+        api_key=args.api_key,
     )
 
     params = {

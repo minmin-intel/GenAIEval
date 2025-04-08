@@ -40,85 +40,83 @@ DATAPATH=os.path.join(WORKDIR, 'datasets/financebench_data/dataprep/')
 if __name__ == "__main__":
     args = get_args()
 
-    df = get_test_data()
-    df = df.loc[df["doc_name"]!="3M_2018_10K"]
+    if args.debug:
+        args.max_new_tokens = 100
+        res = generate_answer(args, "3 fun things to do in San Francisco")
+        print(res)
+    else:
+        df = get_test_data()
+        df = df.loc[df["doc_name"]!="3M_2018_10K"]
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+        tokenizer = AutoTokenizer.from_pretrained(args.model)
 
-    # if args.debug:
-    #     filename = os.path.join(DATAPATH, '3M_2018_10K.md')
-    #     with open(filename, "r") as f:
-    #         full_doc = f.read()
-    # elif args.read_processed:
-    #     pass
-    # else:
-    if not args.read_processed:
-        doc_converter = DocumentConverter()
+        if not args.read_processed:
+            doc_converter = DocumentConverter()
 
-    previous_doc_name = ""
+        previous_doc_name = ""
 
-    responses = []
-    truncated_flags = []
-    generation_time = []
-    for i, row in df.iterrows():
-        query = row["question"]
-        doc_name = row["doc_name"]
+        responses = []
+        truncated_flags = []
+        generation_time = []
+        for i, row in df.iterrows():
+            query = row["question"]
+            doc_name = row["doc_name"]
 
-        print(f"Question: {query}\nDocument: {doc_name}")
+            print(f"Question: {query}\nDocument: {doc_name}")
 
-        if doc_name != previous_doc_name:
-            print(f" @@@ Question is about New document: {doc_name}")
+            if doc_name != previous_doc_name:
+                print(f" @@@ Question is about New document: {doc_name}")
 
-            if not args.read_processed:
-                doc_path = get_doc_path(doc_name)
-                print("Parsing PDF....")
-                full_doc, _ = process_pdf_docling(doc_converter, doc_path)
-                doc_save_path = os.path.join(DATAPATH, f"{doc_name}.md")
-                with open(doc_save_path, "w") as f:
-                    f.write(full_doc)
+                if not args.read_processed:
+                    doc_path = get_doc_path(doc_name)
+                    print("Parsing PDF....")
+                    full_doc, _ = process_pdf_docling(doc_converter, doc_path)
+                    doc_save_path = os.path.join(DATAPATH, f"{doc_name}.md")
+                    with open(doc_save_path, "w") as f:
+                        f.write(full_doc)
+                else:
+                    doc_save_path = os.path.join(DATAPATH, f"{doc_name}.md")
+                    with open(doc_save_path, "r") as f:
+                        full_doc = f.read()
+
+                previous_doc_name = doc_name
+                truncated_doc = truncate_context(full_doc, query, tokenizer, args.max_new_tokens)
             else:
-                doc_save_path = os.path.join(DATAPATH, f"{doc_name}.md")
-                with open(doc_save_path, "r") as f:
-                    full_doc = f.read()
-
-            previous_doc_name = doc_name
-            truncated_doc = truncate_context(full_doc, query, tokenizer, args.max_new_tokens)
-        else:
-            print(f" @@@ Question is about the same document: {doc_name}")
+                print(f" @@@ Question is about the same document: {doc_name}")
 
 
-        if len(truncated_doc) < len(full_doc):
-            truncated_flags.append("true")
-        else:
-            truncated_flags.append("false")
+            if len(truncated_doc) < len(full_doc):
+                truncated_flags.append("true")
+            else:
+                truncated_flags.append("false")
 
-        prompt = LONG_CONTEXT_PROMPT_TEMPLATE.format(document=truncated_doc, question=query)
+            prompt = LONG_CONTEXT_PROMPT_TEMPLATE.format(document=truncated_doc, question=query)
 
-        t0 = time.time()
-        resp = generate_answer(args, prompt)
-        t1 = time.time()
-        print(f"Response: {resp}")
+            t0 = time.time()
+            resp = generate_answer(args, prompt)
+            t1 = time.time()
+            print(f"Response: {resp}")
 
-        responses.append(resp)
-        generation_time.append(t1-t0)
+            responses.append(resp)
+            generation_time.append(t1-t0)
 
-        output = {
-            "doc_name": doc_name,
-            "question": query,
-            "gold_answer": row["answer"],
-            "response": resp,
-            "truncated": truncated_flags[-1],
-            "generation_time": generation_time[-1]
-        }
+            output = {
+                "doc_name": doc_name,
+                "question": query,
+                "gold_answer": row["answer"],
+                "response": resp,
+                "truncated": truncated_flags[-1],
+                "generation_time": generation_time[-1]
+            }
 
-        with open(args.output, "a") as f:
-            f.write(json.dumps(output)+"\n")
+            with open(args.output, "a") as f:
+                f.write(json.dumps(output)+"\n")
 
-        print("="*50)
+            print("="*50)
 
-    df["response"] = responses
-    df["truncated"] = truncated_flags
-    df["generation_time"] = generation_time
-    df.to_csv(args.output.replace(".json", ".csv"), index=False)
+        df["response"] = responses
+        df["truncated"] = truncated_flags
+        df["generation_time"] = generation_time
+        df.to_csv(args.output.replace(".json", ".csv"), index=False)
 
     
